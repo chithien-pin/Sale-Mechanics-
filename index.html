@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sale Mechanics — Checklist test hiển thị</title>
+  <style>
+    :root {
+      --bg: #f4f4f5;
+      --card: #fff;
+      --text: #18181b;
+      --muted: #71717a;
+      --border: #e4e4e7;
+      --red: #c40016;
+      --green: #16a34a;
+      --blue: #2563eb;
+      --amber: #d97706;
+      --soft-red: #fef2f2;
+      --soft-green: #f0fdf4;
+      --soft-blue: #eff6ff;
+      --soft-amber: #fffbeb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    .lead { color: var(--muted); margin: 0 0 24px; font-size: 15px; }
+    h2 {
+      font-size: 18px;
+      margin: 32px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+    }
+    h3 { font-size: 15px; margin: 0 0 8px; }
+    .nav {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 24px;
+    }
+    .nav a {
+      text-decoration: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .nav a:hover { border-color: var(--red); color: var(--red); }
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .legend-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 13px;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .tag-show { background: var(--soft-green); color: var(--green); }
+    .tag-hide { background: var(--soft-red); color: var(--red); }
+    .tag-popup { background: var(--soft-amber); color: var(--amber); }
+    .tag-auto { background: var(--soft-blue); color: var(--blue); }
+    .tag-sticky { background: #f4f4f5; color: #52525b; }
+
+    .rule {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .rule strong { color: var(--red); }
+
+    .scenario {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .scenario-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .scenario-id {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--soft-red);
+      color: var(--red);
+      display: grid; place-items: center;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .scenario-head > div:nth-child(2) { flex: 1; min-width: 0; }
+    .scenario-title { font-weight: 700; font-size: 15px; margin: 0 0 2px; }
+    .scenario-when { color: var(--muted); font-size: 13px; margin: 0; }
+    .expect { justify-content: flex-end; max-width: 280px; }
+
+    .mock {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 12px;
+    }
+    @media (max-width: 720px) {
+      .mock { grid-template-columns: 1fr; }
+    }
+    .mock-panel {
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafafa;
+    }
+    .mock-panel .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .fake-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .fake-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ed8a95, #c40016);
+      flex-shrink: 0;
+    }
+    .fake-body { flex: 1; min-width: 0; }
+    .fake-title { font-size: 14px; font-weight: 600; }
+    .fake-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .fake-desc a { color: var(--blue); }
+    .fake-toggle {
+      width: 40px; height: 22px;
+      border-radius: 999px;
+      background: #d4d4d8;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .fake-toggle.on { background: #22c55e; }
+    .fake-toggle::after {
+      content: "";
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      transition: .2s;
+    }
+    .fake-toggle.on::after { left: 20px; }
+    .fake-empty {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      padding: 8px 0;
+    }
+    .fake-sticky {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+    .fake-sticky .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+    .fake-sticky .link { color: var(--blue); font-weight: 600; cursor: default; }
+
+    .steps {
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: step;
+    }
+    .steps li {
+      position: relative;
+      padding: 8px 8px 8px 36px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0; top: 8px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #f4f4f5;
+      display: grid; place-items: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .expect {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      margin-top: 6px;
+    }
+
+    .check-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .check-table th, .check-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    .check-table th { background: #fafafa; font-size: 12px; color: var(--muted); }
+    .check-table tr:last-child td { border-bottom: none; }
+    .check {
+      width: 18px; height: 18px;
+      accent-color: var(--green);
+    }
+    .note {
+      font-size: 13px;
+      color: var(--muted);
+      background: var(--soft-amber);
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    footer {
+      margin-top: 40px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Sale Mechanics — Checklist test</h1>
+    <p class="lead">
+      Tài liệu giải thích <strong>khi nào hiện text trên card</strong>, <strong>khi nào chỉ hiện ở sticky bar</strong>,
+      và hành vi bật/tắt toggle cho BHMR & Thu cũ.
+      File: <code>components/LandingPage/ProductSeries/LandingProductSeries.vue</code>
+    </p>
+
+    <nav class="nav">
+      <a href="#idea">Ý tưởng 1 phút</a>
+      <a href="#legend">Chú thích</a>
+      <a href="#bhmr">BHMR</a>
+      <a href="#trade">Thu cũ</a>
+      <a href="#other">Thanh toán / Trả góp</a>
+      <a href="#checklist">Checklist tick</a>
+    </nav>
+
+    <section id="idea">
+      <h2>1. Ý tưởng trong 1 phút</h2>
+      <div class="rule">
+        <p style="margin:0 0 8px"><strong>Card</strong> (trong form chọn SP) = nơi “pitch” khi có sẵn item cần promote.</p>
+        <p style="margin:0 0 8px"><strong>Sticky bar</strong> = nơi luôn hiện chi tiết sau khi user đã chọn / đổi thủ công.</p>
+        <p style="margin:0">
+          Quy tắc vàng: <strong>Chọn hoặc thay đổi thủ công (trừ case auto đăng ký)</strong>
+          → ẩn text trên card, chỉ còn sticky bar.
+        </p>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <h3>BHMR promote gì?</h3>
+          Gói bảo hành loại <code>buyback</code> (S-BuyBack)
+        </div>
+        <div class="legend-item">
+          <h3>Thu cũ promote gì?</h3>
+          Lịch sử định giá máy (<code>deviceValuation</code>)
+        </div>
+        <div class="legend-item">
+          <h3>Auto đăng ký (***)</h3>
+          Bật toggle = chọn luôn, không mở popup
+        </div>
+        <div class="legend-item">
+          <h3>Thủ công</h3>
+          Mở popup / bấm “Thay đổi” / chọn từ sticky
+        </div>
+      </div>
+    </section>
+
+    <section id="legend">
+      <h2>2. Chú thích tag</h2>
+      <p>
+        <span class="tag tag-show">Hiện text card</span>
+        <span class="tag tag-hide">Ẩn text card</span>
+        <span class="tag tag-auto">Auto apply</span>
+        <span class="tag tag-popup">Mở popup</span>
+        <span class="tag tag-sticky">Sticky có chi tiết</span>
+      </p>
+    </section>
+
+    <section id="bhmr">
+      <h2>3. BHMR (Bảo hành mở rộng / S-BuyBack)</h2>
+
+      <!-- B1 -->
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">B1</div>
+          <div>
+            <p class="scenario-title">Có gói BuyBack — chưa bật toggle</p>
+            <p class="scenario-when">Điều kiện: API trả ≥1 gói <code>type = buyback</code></p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-show">Hiện text card</span>
+            <span class="tag tag-hide">Toggle OFF</span>
+          </div>
+        </div>
+        <div class="mock">
+          <div class="mock-panel">
+            <div class="label">Card trên form</div>
+            <div class="fake-card">
+              <div class="fake-icon"></div>
+              <div class="fake-body">
+                <div class="fake-title">Chọn gói dịch vụ bảo hành</div>
+                <div class="fake-desc">S-BuyBack Gói cam kết giá thu. <a>Chi tiết</a></div>
+              </div>
+              <div class="fake-toggle"></div>
+            </div>
+          </div>
+          <div class="mock-panel">
+            <div class="label">Sticky bar</div>
+            <div class="fake-sticky">
+              <div class="row">
+                <span>Gói dịch vụ bảo hành</span>
+                <span class="link">Chọn gói</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- B2 -->
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">B2</div>
+          <div>
+            <p class="scenario-title">Không có gói BuyBack</p>
+            <p class="scenario-when">Có gói BH thường, nhưng không có <code>buyback</code> → không pitch</p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-hide">Ẩn text card</span>
+          </div>
+        </div>
+        <div class="mock">
+          <div class="mock-panel">
+            <div class="label">Card trên form</div>
+            <div class="fake-card">
+              <div class="fake-icon"></div>
+              <div class="fake-body">
+                <div class="fake-title">Chọn gói dịch vụ bảo hành</div>
+                <div class="fake-empty">Không có dòng mô tả</div>
+              </div>
+              <div class="fake-toggle"></div>
+            </div>
+          </div>
+          <div class="mock-panel">
+            <div class="label">Sticky bar</div>
+            <div class="fake-sticky">
+              <div class="row"><span>Gói dịch vụ bảo hành</span><span class="link">Chọn gói</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- B3 -->
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">B3</div>
+          <div>
+            <p class="scenario-title">Chỉ 1 gói → bật toggle (*** auto)</p>
+            <p class="scenario-when">Đã login · <code>warrantyPacks.length === 1</code></p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-auto">Auto apply</span>
+            <span class="tag tag-show">Text card vẫn hiện (nếu có buyback)</span>
+            <span class="tag tag-sticky">Sticky có gói</span>
+          </div>
+        </div>
+        <ol class="steps">
+          <li>User bật toggle</li>
+          <li><strong>Không mở popup</strong> — đăng ký luôn gói đó</li>
+          <li>Toggle ON · sticky hiện tên gói + “thay đổi”</li>
+        </ol>
+        <div class="mock" style="margin-top:12px">
+          <div class="mock-panel">
+            <div class="label">Card</div>
+            <div class="fake-card">
+              <div class="fake-icon"></div>
+              <div class="fake-body">
+                <div class="fake-title">Chọn gói dịch vụ bảo hành</div>
+                <div class="fake-desc">Tên gói BuyBack… <a>Chi tiết</a></div>
+              </div>
+              <div class="fake-toggle on"></div>
+            </div>
+          </div>
+          <div class="mock-panel">
+            <div class="label">Sticky</div>
+            <div class="fake-sticky">
+              <div class="row">
+                <span>Tên gói đã chọn</span>
+                <span class="link">thay đổi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- B4 -->
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">B4</div>
+          <div>
+            <p class="scenario-title">>1 gói → bật toggle → chọn trong popup</p>
+            <p class="scenario-when">Đã login · nhiều gói BH</p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-popup">Mở popup</span>
+            <span class="tag tag-hide">Ẩn text card sau khi chọn</span>
+            <span class="tag tag-sticky">Sticky có gói</span>
+          </div>
+        </div>
+        <ol class="steps">
+          <li>Bật toggle → mở popup chọn gói</li>
+          <li>User chọn 1 gói → confirm</li>
+          <li>Đánh dấu <code>manual</code> → <strong>card mất dòng mô tả</strong></li>
+          <li>Chi tiết chỉ còn ở sticky bar</li>
+        </ol>
+        <div class="mock" style="margin-top:12px">
+          <div class="mock-panel">
+            <div class="label">Card sau khi chọn thủ công</div>
+            <div class="fake-card">
+              <div class="fake-icon"></div>
+              <div class="fake-body">
+                <div class="fake-title">Chọn gói dịch vụ bảo hành</div>
+                <div class="fake-empty">Không còn text promote</div>
+              </div>
+              <div class="fake-toggle on"></div>
+            </div>
+          </div>
+          <div class="mock-panel">
+            <div class="label">Sticky — nơi hiện chi tiết</div>
+            <div class="fake-sticky">
+              <div class="row">
+                <span>Gói X đã chọn</span>
+                <span class="link">thay đổi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- B5 -->
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">B5</div>
+          <div>
+            <p class="scenario-title">Tắt toggle / chưa login</p>
+            <p class="scenario-when">OFF = clear gói · chưa login = mở login</p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-hide">Clear lựa chọn</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section id="trade">
+      <h2>4. Thu cũ lên đời</h2>
+
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">T1</div>
+          <div>
+            <p class="scenario-title">Có lịch sử định giá — chưa bật</p>
+            <p class="scenario-when"><code>deviceValuation.product_id</code> có data</p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-show">Hiện tên máy + giá + Thay đổi</span>
+          </div>
+        </div>
+        <div class="mock">
+          <div class="mock-panel">
+            <div class="label">Card</div>
+            <div class="fake-card">
+              <div class="fake-icon"></div>
+              <div class="fake-body">
+                <div class="fake-title">Thu cũ lên đời</div>
+                <div class="fake-desc">iPhone 13 128GB</div>
+                <div class="fake-desc">Giá thu dự kiến: <strong>5.000.000đ</strong> <a>Thay đổi</a></div>
+              </div>
+              <div class="fake-toggle"></div>
+            </div>
+          </div>
+          <div class="mock-panel">
+            <div class="label">Sticky</div>
+            <div class="fake-sticky">
+              <div class="row"><span>Ưu đãi thu cũ</span><span class="link">Chọn ưu đãi</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">T2</div>
+          <div>
+            <p class="scenario-title">Không có lịch sử định giá</p>
+            <p class="scenario-when">User chưa từng định giá / chưa login valuation</p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-hide">Ẩn text card</span>
+          </div>
+        </div>
+        <div class="mock">
+          <div class="mock-panel">
+            <div class="label">Card</div>
+            <div class="fake-card">
+              <div class="fake-icon"></div>
+              <div class="fake-body">
+                <div class="fake-title">Thu cũ lên đời</div>
+                <div class="fake-empty">Chỉ title + toggle</div>
+              </div>
+              <div class="fake-toggle"></div>
+            </div>
+          </div>
+          <div class="mock-panel">
+            <div class="label">Sticky</div>
+            <div class="fake-sticky">
+              <div class="row"><span>Ưu đãi thu cũ</span><span class="link">Chọn ưu đãi</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">T3</div>
+          <div>
+            <p class="scenario-title">Có lịch sử → bật toggle (*** auto)</p>
+            <p class="scenario-when">Đã login + có <code>deviceValuation</code></p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-auto">Auto apply lịch sử</span>
+            <span class="tag tag-show">Text card vẫn hiện</span>
+            <span class="tag tag-sticky">Sticky có máy + giá</span>
+          </div>
+        </div>
+        <ol class="steps">
+          <li>Bật toggle</li>
+          <li><strong>Không mở popup</strong> — gắn luôn máy định giá cũ</li>
+          <li>Toggle ON · sticky hiện tên máy / giá thu</li>
+        </ol>
+      </article>
+
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">T4</div>
+          <div>
+            <p class="scenario-title">Bấm “Thay đổi” hoặc chọn từ sticky / modal</p>
+            <p class="scenario-when">Đổi hình thức định giá / chọn máy khác</p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-popup">Mở modal</span>
+            <span class="tag tag-hide">Ẩn text card sau khi chọn</span>
+            <span class="tag tag-sticky">Sticky cập nhật</span>
+          </div>
+        </div>
+        <ol class="steps">
+          <li>Bấm <strong>Thay đổi</strong> trên card (hoặc sticky)</li>
+          <li>Chọn loại định giá / máy mới</li>
+          <li>Đánh dấu <code>manual</code> → card chỉ còn title + toggle ON</li>
+          <li>Chi tiết máy/giá chỉ hiện ở sticky</li>
+        </ol>
+        <div class="mock" style="margin-top:12px">
+          <div class="mock-panel">
+            <div class="label">Card sau khi đổi thủ công</div>
+            <div class="fake-card">
+              <div class="fake-icon"></div>
+              <div class="fake-body">
+                <div class="fake-title">Thu cũ lên đời</div>
+                <div class="fake-empty">Không còn tên máy / giá</div>
+              </div>
+              <div class="fake-toggle on"></div>
+            </div>
+          </div>
+          <div class="mock-panel">
+            <div class="label">Sticky</div>
+            <div class="fake-sticky">
+              <div class="row"><span>iPhone 12 · 4.2tr</span><span class="link">thay đổi</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="scenario">
+        <div class="scenario-head">
+          <div class="scenario-id">T5</div>
+          <div>
+            <p class="scenario-title">Không có lịch sử → bật toggle</p>
+            <p class="scenario-when">Không auto — phải chọn</p>
+          </div>
+          <div class="expect">
+            <span class="tag tag-popup">Mở modal chọn</span>
+            <span class="tag tag-hide">Card không pitch</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section id="other">
+      <h2>5. Thanh toán & Trả góp</h2>
+      <div class="rule">
+        <p style="margin:0">
+          <strong>Không có promote text trên card.</strong>
+          Card luôn chỉ có title + toggle.
+          Mọi chi tiết ưu đãi chỉ hiện ở <strong>sticky bar</strong> sau khi chọn.
+        </p>
+      </div>
+    </section>
+
+    <section id="checklist">
+      <h2>6. Checklist tick khi test</h2>
+      <table class="check-table">
+        <thead>
+          <tr>
+            <th style="width:40px">OK</th>
+            <th>Case</th>
+            <th>Kỳ vọng ngắn</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>B1 — Có BuyBack, chưa bật</td>
+            <td>Card hiện dòng mô tả S-BuyBack</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>B2 — Không có BuyBack</td>
+            <td>Card không có dòng mô tả</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>B3 — 1 gói, bật toggle</td>
+            <td>Không popup · auto chọn · sticky có gói</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>B4 — Nhiều gói, chọn trong popup</td>
+            <td>Sau chọn: card mất text · sticky giữ text</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>B5 — Tắt toggle / chưa login</td>
+            <td>Clear / mở login</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>T1 — Có lịch sử định giá</td>
+            <td>Card hiện máy + giá + Thay đổi</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>T2 — Không lịch sử</td>
+            <td>Card chỉ title + toggle</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>T3 — Có lịch sử, bật toggle</td>
+            <td>Auto apply · không popup</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>T4 — Bấm Thay đổi / chọn lại</td>
+            <td>Card mất text · sticky cập nhật</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>T5 — Không lịch sử, bật toggle</td>
+            <td>Mở modal chọn</td>
+          </tr>
+          <tr>
+            <td><input class="check" type="checkbox" /></td>
+            <td>Payment / Installment</td>
+            <td>Card không pitch · chi tiết chỉ sticky</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <strong>Mẹo nhớ:</strong>
+        Pitch trên card chỉ khi hệ thống “gợi ý sẵn” (BuyBack / lịch sử định giá).
+        User tự chọn hoặc đổi → card im lặng, sticky nói chuyện.
+      </div>
+    </section>
+
+    <footer>
+      Generated for QA · cps-nuxt-standard · LandingProductSeries sale mechanics
+    </footer>
+  </div>
+</body>
+</html>
