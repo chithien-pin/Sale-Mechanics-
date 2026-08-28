@@ -258,6 +258,72 @@
       padding: 12px;
       margin-top: 12px;
     }
+    .auto-box {
+      background: var(--soft-blue);
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .auto-box h3 {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font-size: 16px;
+    }
+    .auto-box p { margin: 0 0 10px; font-size: 14px; }
+    .auto-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 720px) {
+      .auto-grid { grid-template-columns: 1fr; }
+    }
+    .auto-card {
+      background: #fff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .auto-card .badge {
+      display: inline-block;
+      background: var(--soft-blue);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .auto-card h4 { margin: 0 0 6px; font-size: 15px; }
+    .auto-card ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      font-size: 13px;
+      color: #3f3f46;
+    }
+    .auto-card li { margin-bottom: 4px; }
+    .auto-vs {
+      margin-top: 12px;
+      font-size: 13px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px;
+      border: 1px dashed #93c5fd;
+    }
+    .auto-vs table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .auto-vs th, .auto-vs td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .auto-vs th { color: var(--muted); font-size: 12px; }
+    .auto-vs tr:last-child td { border-bottom: none; }
     footer {
       margin-top: 40px;
       font-size: 12px;
@@ -277,6 +343,7 @@
 
     <nav class="nav">
       <a href="#idea">Ý tưởng 1 phút</a>
+      <a href="#auto">Auto đăng ký (***)</a>
       <a href="#legend">Chú thích</a>
       <a href="#bhmr">BHMR</a>
       <a href="#trade">Thu cũ</a>
@@ -314,8 +381,92 @@
       </div>
     </section>
 
+    <section id="auto">
+      <h2>2. Auto đăng ký (***) — giải thích rõ</h2>
+      <div class="auto-box">
+        <h3>Là gì?</h3>
+        <p>
+          User <strong>bật toggle</strong> → hệ thống <strong>đăng ký / gắn luôn</strong> lựa chọn promote sẵn,
+          <strong>không mở popup</strong> để hỏi thêm.
+          Trong spec gốc các case này được đánh dấu <code>(***)</code>.
+        </p>
+        <p style="margin:0">
+          Sau auto: toggle ON, meta được gắn, sticky hiện chi tiết.
+          Text promote trên card <strong>vẫn được giữ</strong> (vì không phải chọn thủ công).
+        </p>
+      </div>
+
+      <div class="auto-grid">
+        <div class="auto-card">
+          <div class="badge">Case B3 · BHMR</div>
+          <h4>Chỉ có đúng 1 gói BH</h4>
+          <ul>
+            <li><strong>Điều kiện:</strong> đã login + <code>warrantyPacks.length === 1</code></li>
+            <li><strong>User làm:</strong> bật toggle</li>
+            <li><strong>Hệ thống:</strong> apply luôn gói đó</li>
+            <li><strong>Không</strong> mở popup chọn gói</li>
+            <li>Card: text promote vẫn hiện (nếu gói là buyback)</li>
+            <li>Sticky: hiện tên gói + “thay đổi”</li>
+          </ul>
+        </div>
+        <div class="auto-card">
+          <div class="badge">Case T3 · Thu cũ</div>
+          <h4>Có lịch sử định giá</h4>
+          <ul>
+            <li><strong>Điều kiện:</strong> đã login + có <code>deviceValuation</code></li>
+            <li><strong>User làm:</strong> bật toggle</li>
+            <li><strong>Hệ thống:</strong> apply luôn lịch sử định giá đó</li>
+            <li><strong>Không</strong> mở modal chọn hình thức</li>
+            <li>Card: vẫn hiện tên máy + giá + “Thay đổi”</li>
+            <li>Sticky: hiện máy + giá thu</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="auto-vs">
+        <strong>So với case KHÔNG auto</strong>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Auto (***)</th>
+              <th>Không auto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>BHMR</strong></td>
+              <td>B3 — đúng 1 gói → bật là xong</td>
+              <td>B4 — &gt;1 gói → mở popup chọn</td>
+            </tr>
+            <tr>
+              <td><strong>Thu cũ</strong></td>
+              <td>T3 — có lịch sử → bật là xong</td>
+              <td>T4 “Thay đổi” / T5 không lịch sử → mở modal</td>
+            </tr>
+            <tr>
+              <td><strong>Text trên card</strong></td>
+              <td>Vẫn hiện (source = promote)</td>
+              <td>Ẩn sau khi chọn (source = manual)</td>
+            </tr>
+            <tr>
+              <td><strong>Sticky</strong></td>
+              <td>Hiện chi tiết</td>
+              <td>Hiện chi tiết</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <strong>Mẹo nhớ:</strong>
+        Auto = “hệ thống đã biết chọn gì rồi, user chỉ cần gật đầu bằng toggle”.
+        Còn lại = “user phải chọn tay” → card im, sticky nói.
+      </div>
+    </section>
+
     <section id="legend">
-      <h2>2. Chú thích tag</h2>
+      <h2>3. Chú thích tag</h2>
       <p>
         <span class="tag tag-show">Hiện text card</span>
         <span class="tag tag-hide">Ẩn text card</span>
@@ -326,7 +477,7 @@
     </section>
 
     <section id="bhmr">
-      <h2>3. BHMR (Bảo hành mở rộng / S-BuyBack)</h2>
+      <h2>4. BHMR (Bảo hành mở rộng / S-BuyBack)</h2>
 
       <!-- B1 -->
       <article class="scenario">
@@ -411,6 +562,10 @@
             <span class="tag tag-show">Text card vẫn hiện (nếu có buyback)</span>
             <span class="tag tag-sticky">Sticky có gói</span>
           </div>
+        </div>
+        <div class="note" style="margin-top:0;margin-bottom:12px">
+          Đây là case <strong>auto đăng ký (***)</strong> —
+          xem giải thích đầy đủ tại <a href="#auto">mục 2</a>.
         </div>
         <ol class="steps">
           <li>User bật toggle</li>
@@ -501,7 +656,7 @@
     </section>
 
     <section id="trade">
-      <h2>4. Thu cũ lên đời</h2>
+      <h2>5. Thu cũ lên đời</h2>
 
       <article class="scenario">
         <div class="scenario-head">
@@ -581,6 +736,10 @@
             <span class="tag tag-sticky">Sticky có máy + giá</span>
           </div>
         </div>
+        <div class="note" style="margin-top:0;margin-bottom:12px">
+          Đây là case <strong>auto đăng ký (***)</strong> —
+          xem giải thích đầy đủ tại <a href="#auto">mục 2</a>.
+        </div>
         <ol class="steps">
           <li>Bật toggle</li>
           <li><strong>Không mở popup</strong> — gắn luôn máy định giá cũ</li>
@@ -644,7 +803,7 @@
     </section>
 
     <section id="other">
-      <h2>5. Thanh toán & Trả góp</h2>
+      <h2>6. Thanh toán & Trả góp</h2>
       <div class="rule">
         <p style="margin:0">
           <strong>Không có promote text trên card.</strong>
@@ -655,7 +814,7 @@
     </section>
 
     <section id="checklist">
-      <h2>6. Checklist tick khi test</h2>
+      <h2>7. Checklist tick khi test</h2>
       <table class="check-table">
         <thead>
           <tr>
