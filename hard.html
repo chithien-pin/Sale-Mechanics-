@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LP iPhone 6 chấm 2026 — Hardcode vs API</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --paper: #fffdf8;
+      --ink: #1c1915;
+      --muted: #6b645b;
+      --line: #e6dfd3;
+      --sidebar: #171411;
+      --sidebar-ink: #d9d0c4;
+      --cms: #1d6bff;
+      --cms-bg: #e8f0ff;
+      --api: #0f8a5f;
+      --api-bg: #e6f6ee;
+      --hc: #c2410c;
+      --hc-bg: #ffefe6;
+      --warn: #9a3412;
+      --warn-bg: #fff1e6;
+      --shadow: 0 18px 50px rgba(28, 25, 21, .08);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "SF Pro Text", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 500px at 10% -10%, #fff8e8 0%, transparent 50%),
+        var(--bg);
+      line-height: 1.55;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      background: var(--sidebar);
+      color: var(--sidebar-ink);
+      padding: 28px 20px 40px;
+    }
+
+    aside h1 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    aside p {
+      margin: 0 0 22px;
+      font-size: 12px;
+      color: #a89f93;
+    }
+
+    nav a {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 7px 10px;
+      border-radius: 8px;
+    }
+
+    nav a:hover,
+    nav a.active {
+      background: rgba(255,255,255,.08);
+      color: #fff;
+    }
+
+    nav .sub { padding-left: 18px; font-size: 12px; color: #9b9286; }
+
+    main { padding: 36px 48px 80px; max-width: 1180px; }
+
+    .hero {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .hero h2 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      letter-spacing: -.03em;
+      line-height: 1.15;
+    }
+
+    .hero .path {
+      display: inline-block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+      background: #f3eee4;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 650;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #eeeae2;
+      color: var(--ink);
+    }
+
+    .chip.on.cms { background: var(--cms-bg); color: var(--cms); }
+    .chip.on.api { background: var(--api-bg); color: var(--api); }
+    .chip.on.hc { background: var(--hc-bg); color: var(--hc); }
+    .chip.on.all { background: var(--ink); color: #fff; }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      vertical-align: middle;
+    }
+    .badge.cms { background: var(--cms-bg); color: var(--cms); }
+    .badge.api { background: var(--api-bg); color: var(--api); }
+    .badge.hc { background: var(--hc-bg); color: var(--hc); }
+    .badge.mix { background: #f3eee4; color: #6b5344; }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin: 0 0 18px;
+    }
+
+    h3 {
+      margin: 0 0 14px;
+      font-size: 22px;
+      letter-spacing: -.02em;
+    }
+
+    h4 {
+      margin: 22px 0 10px;
+      font-size: 16px;
+    }
+
+    p, li { color: var(--ink); }
+    .muted { color: var(--muted); }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .86em;
+      background: #f3eee4;
+      padding: 1px 5px;
+      border-radius: 5px;
+    }
+
+    pre {
+      overflow: auto;
+      background: #171411;
+      color: #f4efe6;
+      padding: 16px 18px;
+      border-radius: 12px;
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .card h5 { margin: 8px 0 8px; font-size: 15px; }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+    }
+
+    .node {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .node b { display: block; margin-bottom: 4px; }
+    .children { margin-left: 22px; display: grid; gap: 8px; }
+    .arrow { color: #a89f93; font-size: 12px; margin: 2px 0 2px 8px; }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      margin: 10px 0;
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 14px 16px;
+      font-weight: 650;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "▾"; color: var(--muted); }
+    details[open] summary::after { content: "▴"; }
+    details .body { padding: 0 8px 8px; }
+
+    .warn {
+      background: var(--warn-bg);
+      border: 1px solid #f0c9ae;
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+
+    .warn h4 { margin-top: 0; color: var(--warn); }
+
+    .filter-hide { display: none !important; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: relative; height: auto; }
+      main { padding: 20px; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <h1>iPhone 6 chấm 2026</h1>
+      <p>Hardcode · CMS · API runtime</p>
+      <nav>
+        <a href="#luong">1. Luồng page</a>
+        <a href="#lop">2. Ba lớp dữ liệu</a>
+        <a href="#cms">3. Dynamic config</a>
+        <a href="#blocks">4. Từng block LP</a>
+        <a href="#api">5. API runtime</a>
+        <a href="#hardcode">6. Hardcode cần lưu ý</a>
+        <a href="#tomtat">7. Bảng tóm tắt</a>
+        <a href="#files">8. File liên quan</a>
+      </nav>
+    </aside>
+
+    <main>
+      <div class="hero">
+        <div class="path">pages/6-cham-2026.html.vue</div>
+        <h2>Landing page iPhone 6 chấm 2026</h2>
+        <p>Phân loại từng phần: viết chết trong code, lấy từ CMS JSON, hay gọi API runtime. Page Vue chỉ là lớp điều hướng; nội dung LP nằm ở <code>iPhone-6cham.vue</code>.</p>
+        <p class="muted">Nếu <code>config_status_lp_iphone_new.period</code> không bật <code>sale</code> / <code>pre</code> / <code>roi</code>, page fallback sang PDP <code>ProductDetailV2</code>.</p>
+        <div class="legend">
+          <button class="chip on all" data-filter="all">Tất cả</button>
+          <button class="chip on cms" data-filter="cms">CMS / Dynamic config</button>
+          <button class="chip on api" data-filter="api">API runtime</button>
+          <button class="chip on hc" data-filter="hc">Hardcode</button>
+        </div>
+      </div>
+
+      <section id="luong">
+        <h3>1. Luồng page</h3>
+        <div class="flow">
+          <div class="node">
+            <b>pages/6-cham-2026.html.vue</b>
+            <span class="muted">asyncData rồi mới render</span>
+          </div>
+          <div class="arrow">asyncData</div>
+          <div class="children">
+            <div class="node" data-src="api"><span class="badge api">API</span> <code>meta-head/getMetaContentGraphql</code> → SEO, product_id / category_id, content, redirect</div>
+            <div class="node" data-src="cms"><span class="badge cms">CMS</span> <code>json-server/getDataDynamicConfig</code> → <code>config_status_lp_iphone_new</code> (chọn period)</div>
+            <div class="node" data-src="api"><span class="badge api">API</span> <code>product/getProductDataDetail</code> hoặc <code>getFilterByCateId</code></div>
+          </div>
+          <div class="arrow">render</div>
+          <div class="children">
+            <div class="node">period ∈ {sale, pre, roi} → <code>iPhone-6cham.vue</code> (LP)</div>
+            <div class="node">còn lại → <code>ProductDetailV2</code> (PDP thường)</div>
+          </div>
+        </div>
+
+        <h4>Period trên production</h4>
+        <table>
+          <thead><tr><th>Flag CMS</th><th>Period render</th><th>Dynamic config layout</th></tr></thead>
+          <tbody>
+            <tr><td><code>period.sale</code></td><td><code>sale</code></td><td><code>iphone_2026_component_open_sell</code></td></tr>
+            <tr><td><code>period.roi</code></td><td><code>roi</code></td><td><code>iphone_2026_component_roi</code></td></tr>
+            <tr><td><code>period.pre</code></td><td><code>pre</code></td><td><code>iphone_2026_component_pre</code></td></tr>
+          </tbody>
+        </table>
+        <p class="muted">Non-prod có thể override bằng query <code>?period=pre|roi|sale</code>.</p>
+
+        <h4>Prop hardcode từ page xuống LP</h4>
+        <ul>
+          <li data-src="hc"><span class="badge hc">Hardcode</span> <code>enable-trade-in-method-modal="true"</code></li>
+          <li data-src="hc"><span class="badge hc">Hardcode</span> <code>layout: default-landing-page</code></li>
+          <li data-src="hc"><span class="badge hc">Hardcode</span> meta index: <code>'NOINDEX'</code></li>
+        </ul>
+      </section>
+
+      <section id="lop">
+        <h3>2. Ba lớp dữ liệu</h3>
+        <div class="cards">
+          <div class="card" data-src="hc">
+            <span class="badge hc">Hardcode</span>
+            <h5>Viết chết trong .vue</h5>
+            <p>Chữ, icon, key, URL, fallback. Ví dụ tab “Thông tin nổi bật”, <code>Math.trunc(1000000)</code>, ảnh OG Samsung.</p>
+          </div>
+          <div class="card" data-src="cms">
+            <span class="badge cms">CMS</span>
+            <h5>Dynamic config / JSON</h5>
+            <p>Chỉnh được không cần deploy. Fetch <code>dynamic_config(key)</code> hoặc <code>cps_json(code)</code>. Banner KV, TNC, tabs upsell, theme.</p>
+          </div>
+          <div class="card" data-src="api">
+            <span class="badge api">API</span>
+            <h5>Runtime theo user / SKU</h5>
+            <p>Catalog, giá, tồn, thu cũ, review, FAQ, cart. Ví dụ <code>products()</code>, <code>item-selection</code>, <code>calculateTradeIn</code>.</p>
+          </div>
+        </div>
+        <p>CMS <b>không phải hardcode</b>, nhưng <b>tên key</b> (<code>new_info_iphone_2026</code>, …) vẫn hardcode trong code.</p>
+      </section>
+
+      <section id="cms">
+        <h3>3. Dynamic config &amp; JSON CMS</h3>
+        <p>Endpoint chung: <code>graphql-dashboard</code> → <code>dynamic_config(key)</code> / <code>cps_json(filter: {code})</code>.</p>
+
+        <h4>3.1 Gọi từ page (<code>asyncData</code>)</h4>
+        <table>
+          <thead><tr><th>Key</th><th>Store</th><th>Dùng để</th></tr></thead>
+          <tbody>
+            <tr data-src="cms"><td><code>config_status_lp_iphone_new</code></td><td><code>json-server/dynamicConfig</code></td><td>Bật/tắt LP và chọn period <code>sale</code> / <code>pre</code> / <code>roi</code></td></tr>
+          </tbody>
+        </table>
+
+        <h4>3.2 Gọi từ <code>iPhone-6cham.vue</code> (<code>fetch</code>)</h4>
+        <table>
+          <thead><tr><th>Key</th><th>Alias</th><th>Dùng để</th></tr></thead>
+          <tbody>
+            <tr data-src="cms"><td><code>iphone_2026_component_pre</code></td><td><code>lpConfig</code> khi <code>pre</code></td><td>Layout: banner, nav, TNC, trade-in, upsell, feature, video</td></tr>
+            <tr data-src="cms"><td><code>iphone_2026_component_roi</code></td><td><code>lpConfig</code> khi <code>roi</code></td><td>Như trên, bản đăng ký nhận tin</td></tr>
+            <tr data-src="cms"><td><code>iphone_2026_component_open_sell</code></td><td><code>lpConfig</code> khi <code>sale</code></td><td>Như trên, bản mở bán</td></tr>
+            <tr data-src="cms"><td><code>new_info_iphone_2026</code></td><td><code>dynamicConfig.new_info_iphone_2026</code></td><td>Cây series / dung lượng / màu / <code>product_id</code></td></tr>
+            <tr data-src="cms"><td><code>theme_color_config_iphone_2026</code></td><td><code>themeColorConfig</code></td><td>CSS variables theme LP</td></tr>
+            <tr data-src="cms"><td><code>iphone_2026_installment_promo</code></td><td><code>installmentPromoConfig</code></td><td>Block banner trả góp</td></tr>
+            <tr data-src="cms"><td><code>text_config_iphone_2026</code></td><td><code>json-text</code> ProductSeries</td><td>Copy bảng giá, CTA, heading series</td></tr>
+            <tr data-src="hc"><td><code>samsung_2026_alt_seo</code></td><td><code>jsonData.altSeo</code></td><td>Alt SEO — key còn copy từ LP Samsung</td></tr>
+          </tbody>
+        </table>
+
+        <h4>3.3 Gọi từ child</h4>
+        <table>
+          <thead><tr><th>Key</th><th>Component</th><th>Dùng để</th></tr></thead>
+          <tbody>
+            <tr data-src="cms"><td><code>payment_promo_new_iphone_2026</code></td><td><code>PaymentPromo.vue</code></td><td>Logo bank, <code>promo_text</code>, TNC, slot hiển thị</td></tr>
+          </tbody>
+        </table>
+        <p data-src="hc"><span class="badge hc">Hardcode</span> Fallback service: <code>lpConfig.service || 'iphone_2026'</code></p>
+      </section>
+
+      <section id="blocks">
+        <h3>4. Từng block trên LP</h3>
+        <p class="muted">Thứ tự theo template <code>iPhone-6cham.vue</code>. Bấm từng mục để xem chi tiết.</p>
+
+        <details open>
+          <summary>4.1 SEO, H1, redirect</summary>
+          <div class="body">
+            <table>
+              <thead><tr><th>Nội dung</th><th>Nguồn</th></tr></thead>
+              <tbody>
+                <tr data-src="api"><td><code>h1_title</code>, meta, content, product/category id, Type</td><td><span class="badge api">API</span> <code>url_info</code></td></tr>
+                <tr data-src="hc"><td>Redirect 301/302 khi option RP / R</td><td><span class="badge mix">Mix</span> API + domain hardcode <code>cellphones.com.vn</code></td></tr>
+                <tr data-src="api"><td>Schema FAQ / Product / Webpage</td><td><span class="badge mix">Mix</span> meta + FAQ + product API</td></tr>
+                <tr data-src="hc"><td>Ảnh OG fallback</td><td><span class="badge hc">Hardcode</span> <code>samsung-galaxy-s26-ultra.jpg</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details>
+          <summary>4.2 Navigation bar</summary>
+          <div class="body">
+            <table>
+              <thead><tr><th>Nội dung</th><th>Nguồn</th></tr></thead>
+              <tbody>
+                <tr data-src="cms"><td><code>lpConfig.navigationItems</code></td><td><span class="badge cms">CMS</span></td></tr>
+                <tr data-src="hc"><td>Fallback nav</td><td><span class="badge hc">Hardcode</span> THU CŨ / ƯU ĐÃI / TÍNH NĂNG / ĐẶT TRƯỚC NGAY</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details>
+          <summary>4.3 Banner KV</summary>
+          <div class="body"><p data-src="cms"><span class="badge cms">CMS</span> Toàn bộ từ <code>lpConfig.bannerKv</code>: desktop, mobile, alt theo path, TNC, <code>btnGroup</code>.</p></div>
+        </details>
+
+        <details>
+          <summary>4.4 Return link / chương trình</summary>
+          <div class="body">
+            <table>
+              <thead><tr><th>Nội dung</th><th>Nguồn</th></tr></thead>
+              <tbody>
+                <tr data-src="cms"><td><code>text</code>, <code>textStart</code>, <code>textEnd</code></td><td><span class="badge cms">CMS</span> <code>lpConfig.returnLink</code></td></tr>
+                <tr data-src="hc"><td>Icon SVG chevron</td><td><span class="badge hc">Hardcode</span></td></tr>
+                <tr data-src="api"><td>Nội dung modal</td><td><span class="badge api">API</span> <code>GetBlockByUd</code></td></tr>
+                <tr data-src="hc"><td>Title modal “Chương trình”</td><td><span class="badge hc">Hardcode</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details>
+          <summary>4.5 Banner promotion</summary>
+          <div class="body">
+            <table>
+              <thead><tr><th>Nội dung</th><th>Nguồn</th></tr></thead>
+              <tbody>
+                <tr data-src="cms"><td>Ảnh, alt, TNC ưu đãi, TNC thu cũ</td><td><span class="badge cms">CMS</span> <code>lpConfig.bannerPromotion</code></td></tr>
+                <tr data-src="api"><td>HTML thể lệ modal</td><td><span class="badge api">API</span> <code>GetBlockByUd</code></td></tr>
+                <tr data-src="hc"><td>Title modal “Nội dung chương trình”</td><td><span class="badge hc">Hardcode</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details>
+          <summary>4.6 Product series — chọn máy, giá, CTA</summary>
+          <div class="body">
+            <p class="muted">Config layout từ CMS; giá / tồn / KM / BH từ API.</p>
+            <table>
+              <thead><tr><th>Nội dung</th><th>Nguồn</th></tr></thead>
+              <tbody>
+                <tr data-src="cms"><td>Series, dung lượng, màu, product_id</td><td><span class="badge cms">CMS</span> <code>new_info_iphone_2026</code></td></tr>
+                <tr data-src="cms"><td>Copy heading / CTA series</td><td><span class="badge cms">CMS</span> <code>text_config_iphone_2026</code></td></tr>
+                <tr data-src="cms"><td>promotionToggle, successMessage, service</td><td><span class="badge cms">CMS</span> <code>lpConfig</code></td></tr>
+                <tr data-src="api"><td>Tên, giá, stock, gallery, SKU</td><td><span class="badge api">API</span> catalog <code>products()</code></td></tr>
+                <tr data-src="api"><td>Slot đặt trước</td><td><span class="badge api">API</span> <code>info_pre_order</code></td></tr>
+                <tr data-src="api"><td>Giá ước tính member + KM</td><td><span class="badge api">API</span> quote estimated-subtotal</td></tr>
+                <tr data-src="api"><td>Bảo hành mở rộng</td><td><span class="badge api">API</span> <code>extended_warranty</code></td></tr>
+                <tr data-src="api"><td>Danh sách đăng ký (roi)</td><td><span class="badge api">API</span> <code>subscriptions</code></td></tr>
+                <tr data-src="hc"><td>Text nút theo period</td><td><span class="badge hc">Hardcode</span> Đăng ký ngay / Đặt trước ngay / Mua ngay</td></tr>
+                <tr data-src="hc"><td>subscription-query-size="10"</td><td><span class="badge hc">Hardcode</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details>
+          <summary>4.7 Thu cũ lên đời</summary>
+          <div class="body">
+            <table>
+              <thead><tr><th>Nội dung</th><th>Nguồn</th></tr></thead>
+              <tbody>
+                <tr data-src="cms"><td>Title ảnh, note, groupTradeIn, tradeSubsidy</td><td><span class="badge cms">CMS</span> <code>lpConfig.tradeIn</code></td></tr>
+                <tr data-src="api"><td>Danh sách máy cũ</td><td><span class="badge api">API</span> catalog theo group</td></tr>
+                <tr data-src="api"><td>Giá thu, trợ giá</td><td><span class="badge api">API</span> trade calculate / subsidy / valuation</td></tr>
+                <tr data-src="hc"><td>Modal hình thức định giá</td><td><span class="badge hc">Hardcode</span> bật từ page</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details>
+          <summary>4.8 Ưu đãi thanh toán</summary>
+          <div class="body">
+            <table>
+              <thead><tr><th>Nội dung</th><th>Nguồn</th></tr></thead>
+              <tbody>
+                <tr data-src="cms"><td>Title / title image</td><td><span class="badge cms">CMS</span> <code>lpConfig.paymentPromo</code></td></tr>
+                <tr data-src="cms"><td>Logo, copy, TNC</td><td><span class="badge cms">CMS</span> <code>payment_promo_new_iphone_2026</code></td></tr>
+                <tr data-src="api"><td>Slot còn / discount_id apply</td><td><span class="badge api">API</span> runtime từ ProductSeries</td></tr>
+                <tr data-src="hc"><td>Alt suffix fallback</td><td><span class="badge hc">Hardcode</span> “khi Samsung Galaxy S26”</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <details>
+          <summary>4.9 – 4.17 Các block còn lại</summary>
+          <div class="body">
+            <table>
+              <thead><tr><th>Block</th><th>CMS</th><th>API</th><th>Hardcode</th></tr></thead>
+              <tbody>
+                <tr><td>Trả góp banner</td><td><code>iphone_2026_installment_promo</code></td><td>—</td><td>map method query</td></tr>
+                <tr><td>eSIM / YouTube</td><td><code>esimGuide</code>, <code>youtubeVideo</code></td><td>GetBlockByUd TNC</td><td>copy nút, embed URL</td></tr>
+                <tr><td>Upsell / Watch</td><td><code>upsellBlock</code>, <code>airpodsAndWatch</code></td><td>catalog group/cate</td><td>swiper, màu title</td></tr>
+                <tr><td>Guide / feature banner</td><td><code>guideBanner</code>, <code>bannerFeatureNew</code></td><td>—</td><td>—</td></tr>
+                <tr><td>Tab nổi bật / mô tả</td><td><code>tabsName</code>, <code>imgFeature</code></td><td>content, FAQ, spec, sforum</td><td>label tab ngoài, nút so sánh</td></tr>
+                <tr><td>Review / comment</td><td>—</td><td>reviews, comment</td><td>—</td></tr>
+                <tr><td>Sticky / mua ngay</td><td>—</td><td>catalog + meta</td><td>pre-order-price 1.000.000</td></tr>
+                <tr><td>Item selection</td><td>—</td><td>cart/item-selection</td><td>chỉ pre/sale + logged in</td></tr>
+                <tr><td>Theme màu</td><td><code>theme_color_config_iphone_2026</code></td><td>—</td><td>helper CSS vars</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+
+      <section id="api">
+        <h3>5. API runtime (không phải CMS)</h3>
+        <table>
+          <thead><tr><th>Việc</th><th>Action / endpoint</th><th>Service</th></tr></thead>
+          <tbody>
+            <tr><td>SEO + content URL</td><td><code>url_info</code></td><td>graphql-url</td></tr>
+            <tr><td>Chi tiết 1 SP</td><td><code>product(id)</code></td><td>catalog GraphQL</td></tr>
+            <tr><td>Filter cate</td><td><code>getFilterByCateId</code></td><td>catalog GraphQL</td></tr>
+            <tr><td>Catalog series / child SKU</td><td><code>getProductListByArrayId</code></td><td>catalog GraphQL</td></tr>
+            <tr><td>Group upsell / máy cũ</td><td><code>getProductsByGroupNameGraph</code></td><td>catalog GraphQL</td></tr>
+            <tr><td>FAQ</td><td><code>faq(url)</code></td><td>graphql-dashboard</td></tr>
+            <tr><td>Block TNC HTML</td><td><code>GetBlockByUd</code></td><td>graphql-dashboard</td></tr>
+            <tr><td>Review</td><td><code>getReviewsGraphqlV2</code></td><td>graphql-customer</td></tr>
+            <tr><td>Sforum</td><td><code>posts</code> theo tag</td><td>Sforum GraphQL</td></tr>
+            <tr><td>Slot pre-order</td><td><code>info_pre_order</code></td><td>graphql-dashboard</td></tr>
+            <tr><td>Giá ước tính</td><td><code>quote/calculate-estimated-subtotal-by-products</code></td><td>cart_service</td></tr>
+            <tr><td>Item selection</td><td><code>cart/item-selection</code></td><td>cart_service</td></tr>
+            <tr><td>BH mở rộng</td><td><code>extended_warranty</code></td><td>graphql-dashboard</td></tr>
+            <tr><td>Đăng ký nhận tin (roi)</td><td><code>subscriptions</code></td><td>graphql-customer</td></tr>
+            <tr><td>Thu cũ tính giá</td><td>calculateTradeIn / subsidy / valuation</td><td>trade / dashboard</td></tr>
+            <tr><td>Tạo đơn / add cart</td><td>handleAddToCart → quote/cart</td><td>cart_service</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="hardcode">
+        <h3>6. Hardcode cần lưu ý</h3>
+        <div class="warn">
+          <h4>Copy sót / magic number — không lấy từ API iPhone 2026</h4>
+          <p>Đặc biệt các dòng Samsung: alt SEO, ảnh OG, key JSON còn từ LP cũ.</p>
+        </div>
+        <table>
+          <thead><tr><th>Vị trí</th><th>Giá trị</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td><code>fetch()</code> json</td><td><code>samsung_2026_alt_seo</code></td><td>Key JSON còn của LP Samsung</td></tr>
+            <tr><td>PaymentPromo alt</td><td><code>'khi Samsung Galaxy S26'</code></td><td>Fallback alt</td></tr>
+            <tr><td>setupMetaTags()</td><td><code>samsung-galaxy-s26-ultra.jpg</code></td><td>OG fallback khi không có meta_image</td></tr>
+            <tr><td>BoxOrderButtonDesktop</td><td><code>pre-order-price = 1_000_000</code></td><td>Giá đặt trước viết chết</td></tr>
+            <tr><td>Tab ngoài</td><td>Thông tin nổi bật / Mô tả sản phẩm</td><td>Không nằm trong <code>lpConfig.tabsName</code></td></tr>
+            <tr><td>Nút so sánh</td><td>So sánh các phiên bản iPhone</td><td>Text + URL embed hardcode</td></tr>
+            <tr><td>Sforum</td><td>title “Tin tức sản phẩm”</td><td></td></tr>
+            <tr><td>Nav fallback</td><td>THU CŨ / ƯU ĐÃI / TÍNH NĂNG / ĐẶT TRƯỚC NGAY</td><td>Khi CMS không có navigationItems</td></tr>
+            <tr><td>Feature img keys</td><td><code>iphone_17</code>, <code>iphone_air</code>, <code>iphone_17_pro</code></td><td>Tên key CMS còn theo iPhone 17</td></tr>
+            <tr><td>Index SEO</td><td><code>'NOINDEX'</code></td><td>Page luôn noindex</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="tomtat">
+        <h3>7. Bảng tóm tắt theo block UI</h3>
+        <table>
+          <thead><tr><th>Block UI</th><th>CMS</th><th>API runtime</th><th>Hardcode</th></tr></thead>
+          <tbody>
+            <tr><td>Chọn LP vs PDP</td><td><code>config_status_lp_iphone_new</code></td><td><code>url_info</code></td><td>layout, noindex, trade-in modal</td></tr>
+            <tr><td>SEO / H1 / content</td><td>—</td><td>url_info, product/cate</td><td>domain redirect, OG Samsung</td></tr>
+            <tr><td>Nav</td><td><code>lpConfig.navigationItems</code></td><td>—</td><td>fallback 4 item</td></tr>
+            <tr><td>Banner KV</td><td><code>lpConfig.bannerKv</code></td><td>—</td><td>—</td></tr>
+            <tr><td>Return link</td><td><code>lpConfig.returnLink</code></td><td>GetBlockByUd</td><td>SVG, title modal</td></tr>
+            <tr><td>Banner KM</td><td><code>lpConfig.bannerPromotion</code></td><td>GetBlockByUd</td><td>—</td></tr>
+            <tr><td>Chọn máy / giá</td><td><code>new_info_iphone_2026</code>, text_config</td><td>catalog, pre-order, quote, BH, KM</td><td>CTA theo period</td></tr>
+            <tr><td>Thu cũ</td><td><code>lpConfig.tradeIn</code></td><td>catalog group + trade APIs</td><td>bật method modal</td></tr>
+            <tr><td>KM ngân hàng</td><td>paymentPromo + payment_promo_new_iphone_2026</td><td>slot/discount</td><td>alt Samsung</td></tr>
+            <tr><td>Trả góp banner</td><td><code>iphone_2026_installment_promo</code></td><td>—</td><td>map method query</td></tr>
+            <tr><td>eSIM / YouTube</td><td>esimGuide, youtubeVideo</td><td>GetBlockByUd</td><td>copy nút, embed URL</td></tr>
+            <tr><td>Upsell / Watch</td><td>upsellBlock, airpodsAndWatch</td><td>catalog group/cate</td><td>swiper, màu title</td></tr>
+            <tr><td>Feature tabs</td><td>tabsName, imgFeature</td><td>—</td><td>label tab ngoài, URL so sánh</td></tr>
+            <tr><td>Mô tả / FAQ / TSKT</td><td>—</td><td>content, faq, spec, sforum</td><td>title Sforum</td></tr>
+            <tr><td>Review / comment</td><td>—</td><td>review, comment</td><td>—</td></tr>
+            <tr><td>Sticky / mua ngay</td><td>—</td><td>catalog + meta</td><td>1.000.000, digital/dropship false</td></tr>
+            <tr><td>Theme</td><td><code>theme_color_config_iphone_2026</code></td><td>—</td><td>helper CSS vars</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="files">
+        <h3>8. File liên quan</h3>
+        <table>
+          <thead><tr><th>File</th><th>Vai trò</th></tr></thead>
+          <tbody>
+            <tr><td><code>pages/6-cham-2026.html.vue</code></td><td>Route, chọn period, fetch meta + product</td></tr>
+            <tr><td><code>components/LandingPage/Apple/iPhone-6cham.vue</code></td><td>Shell LP, fetch CMS, ráp block</td></tr>
+            <tr><td><code>components/LandingPage/ProductSeries/LandingProductSeries.vue</code></td><td>Series / giá / CTA / KM / BH</td></tr>
+            <tr><td><code>components/LandingPage/Apple/TradeInBlock/TradeInBlockAp.vue</code></td><td>Thu cũ</td></tr>
+            <tr><td><code>components/LandingPage/Apple/PaymentOffer/PaymentPromo.vue</code></td><td>KM bank</td></tr>
+            <tr><td><code>components/LandingPage/BlockProductDynamic/blockProductDynamic.vue</code></td><td>Upsell / installment banners</td></tr>
+            <tr><td><code>store/json-server.js</code></td><td>dynamic_config + cps_json</td></tr>
+            <tr><td><code>store/meta-head.js</code></td><td>url_info SEO</td></tr>
+            <tr><td><code>store/product.js</code></td><td>Catalog</td></tr>
+            <tr><td><code>store/trade.js</code></td><td>Thu cũ</td></tr>
+            <tr><td><code>store/super-cart.js</code></td><td>Pre-order, item-selection, quote</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const chips = document.querySelectorAll('.chip')
+    const tagged = document.querySelectorAll('[data-src]')
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const filter = chip.dataset.filter
+        chips.forEach((c) => c.classList.toggle('on', filter === 'all' || c === chip))
+        tagged.forEach((el) => {
+          el.classList.toggle('filter-hide', filter !== 'all' && el.dataset.src !== filter)
+        })
+      })
+    })
+
+    const links = document.querySelectorAll('aside nav a')
+    const sections = [...links].map((a) => document.querySelector(a.getAttribute('href')))
+    const onScroll = () => {
+      const y = window.scrollY + 90
+      let current = sections[0]
+      sections.forEach((s) => { if (s && s.offsetTop <= y) current = s })
+      links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + current.id))
+    }
+    document.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+  </script>
+</body>
+</html>
